@@ -1,0 +1,16 @@
+FROM golang:1.25.3
+
+WORKDIR /workspace
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends iproute2 procps ca-certificates git curl \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY . .
+
+ENV COVERAGE_DIR=/workspace/coverage
+
+# No entrypoint needed since we will pass the commands with docker run

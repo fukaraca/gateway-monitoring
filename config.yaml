@@ -1,0 +1,71 @@
+# Gateway Monitor Configuration
+
+monitoring_interval: 5s
+
+# Connectivity monitoring targets
+connectivity:
+  ping_targets:
+    - "8.8.8.8"
+    - "1.1.1.1"
+    - "208.67.222.222"  # OpenDNS
+  
+  dns_targets:
+    - "google.com"
+    - "cloudflare.com"
+    - "github.com"
+
+  dns_servers:
+    - "8.8.8.8:53"
+    - "1.1.1.1:53"
+    - "system"
+
+  record_types:
+    - "A"
+    - "AAAA"
+
+  gateway: "192.168.1.1"
+
+  timeout: 5s  # seconds
+  check_interval: 10s
+
+proc:
+  check_interval: 5s
+  meminfo_path: "/proc/meminfo"
+  loadavg_path: "/proc/loadavg"
+  netdev_path: "/proc/net/dev"
+
+netlink:
+  check_interval: 10s
+
+# Logging configuration
+logging:
+  level: "debug"  # debug, info, warn, error
+  format: "json"  # json, text
+  output: "stdout"  # stdout, stderr, file path
+
+# System thresholds
+thresholds:
+  memory:
+    warning_percent: 80
+    critical_percent: 95
+  
+  load:
+    warning_1min: 2.0
+    critical_1min: 4.0
+  
+  connectivity:
+    warning_score: 70
+    critical_score: 50
+
+# Network interfaces to monitor (empty = all)
+interfaces: []
+
+# Enable/disable monitoring components
+components:
+  proc_monitor: true
+  netlink_monitor: true
+  connectivity_monitor: true
+
+prom_server:
+  namespace: "gwm"
+  addr: ":8081"

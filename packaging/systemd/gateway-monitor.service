@@ -1,0 +1,56 @@
+[Unit]
+Description=Gateway Monitor - monitors /proc, netlink, ping & DNS
+After=network-online.target
+Wants=network-online.target
+
+# throttle the restart burst
+StartLimitBurst=6
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+
+# dedicated (non-root) user
+User=gwmon
+Group=gwmon
+
+# Create /run /var/lib /var/log as convention but it is empty for now
+RuntimeDirectory=gateway-monitor
+StateDirectory=gateway-monitor
+ExecStartPre=/bin/mkdir -p /var/log/gateway-monitor
+ExecStartPre=/bin/chown gwmon:gwmon /var/log/gateway-monitor
+
+ExecStart=/usr/local/bin/gateway-monitor --config /etc/gateway-monitor/config.yaml
+
+# restart policy
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=30
+KillMode=control-group
+
+# limits and resources
+LimitNOFILE=65536
+MemoryMax=200M
+
+# capabilities needed for netlink
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+NoNewPrivileges=true
+
+# security context
+ProtectSystem=full        # /usr and /boot read-only; allows /etc read-only too (use ReadWritePaths for exceptions)
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+
+# can write to paths
+ReadWritePaths=/var/lib/gateway-monitor /var/log/gateway-monitor /etc/gateway-monitor
+
+# journalling
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=gateway-monitor
+
+[Install]
+WantedBy=multi-user.target
