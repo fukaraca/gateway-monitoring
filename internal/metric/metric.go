@@ -100,7 +100,7 @@ type Exporter struct {
 }
 
 func NewExporter(cfg *config.PrometheusServerConfig, logger *zap.Logger) *Exporter {
-	namespace = cfg.Namespace
+	namespace = cfg.Namespace // TODO this is innefective
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 

@@ -85,7 +85,7 @@ func (m *Monitor) Start(ctx context.Context) error {
 
 // GetMemoryStats reads and parses /proc/meminfo
 func (m *Monitor) GetMemoryStats() (*model.MemoryStats, error) {
-	scanner := bufio.NewScanner(m.meminfoFile)
+	scanner := bufio.NewScanner(m.meminfoFile) // TODO bufio.Reader can be efficient option
 	scanner.Split(bufio.ScanLines)
 
 	stats := &model.MemoryStats{}
@@ -98,7 +98,7 @@ func (m *Monitor) GetMemoryStats() (*model.MemoryStats, error) {
 
 		switch parts[0] {
 		case "MemTotal:":
-			stats.MemTotal, _ = parseMemoryValue(line)
+			stats.MemTotal, _ = parseMemoryValue(line) // TODO we should pass parts[1:] to parse instead of reslicing in parseMemoryValue again
 		case "MemFree:":
 			stats.MemFree, _ = parseMemoryValue(line)
 		case "MemAvailable:":
@@ -224,7 +224,7 @@ func (m *Monitor) GetNetworkStats() (map[string]*model.NetworkStats, error) {
 func (m *Monitor) GetStats() (*model.ProcStats, error) {
 	out := model.ProcStats{}
 	var errM, errL, errN error
-	out.Memory, errM = m.GetMemoryStats()
+	out.Memory, errM = m.GetMemoryStats() // TODO too many new map/slice allocations, we only need to check err and modify in place
 	out.Load, errL = m.GetLoadStats()
 	out.Network, errN = m.GetNetworkStats()
 	err := errors.Join(errM, errL, errN)

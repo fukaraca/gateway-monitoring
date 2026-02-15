@@ -85,7 +85,7 @@ func (m *Monitor) Start(ctx context.Context) error {
 // monitoringLoop runs periodic connectivity checks
 func (m *Monitor) monitoringLoop(ctx context.Context) {
 	defer m.wg.Done()
-	ticker := time.NewTicker(m.checkInterval)
+	ticker := time.NewTicker(m.checkInterval) // TODO: prefer Timer
 	defer ticker.Stop()
 
 	// Run initial check
@@ -115,7 +115,7 @@ func (m *Monitor) runConnectivityChecks(ctx context.Context) {
 		go func(n int, t string) {
 			defer wgPing.Done()
 			pingResults[n] = m.pingTest(t)
-		}(i, target)
+		}(i, target) // TODO: explicitly passing variables to goroutine not necessary anymore
 	}
 
 	// Run DNS tests
@@ -136,7 +136,7 @@ func (m *Monitor) runConnectivityChecks(ctx context.Context) {
 
 	m.mu.Lock()
 	// Update status (first result only for simplicity)
-	if len(pingResults) > 0 {
+	if len(pingResults) > 0 { // TODO: Simplicity but this is wrong, maybe summary is best option, with err count
 		m.status.Ping = pingResults[0]
 	}
 	if len(dnsResults) > 0 {
@@ -152,7 +152,7 @@ func (m *Monitor) runConnectivityChecks(ctx context.Context) {
 }
 
 // pingTest performs ICMP ping test by promehetus-pinger.
-func (m *Monitor) pingTest(target string) *model.PingResult {
+func (m *Monitor) pingTest(target string) *model.PingResult { // TODO we don't have to return pointer
 
 	pinger, err := probing.NewPinger(target)
 	if err != nil {
@@ -197,7 +197,7 @@ func (m *Monitor) pingTest(target string) *model.PingResult {
 }
 
 // dnsTest performs a DNS resolution test
-func (m *Monitor) dnsTest(ctx context.Context, target string) *model.DNSResult {
+func (m *Monitor) dnsTest(ctx context.Context, target string) *model.DNSResult { // TODO return by value for less overhead on GC but i know we share the address in the next step
 	totalStart := time.Now()
 
 	results := make(map[string]struct{})
@@ -219,7 +219,7 @@ func (m *Monitor) dnsTest(ctx context.Context, target string) *model.DNSResult {
 				if s == "system" {
 					r = net.DefaultResolver
 				} else {
-					r = &net.Resolver{
+					r = &net.Resolver{ // TODO: it would be better to reuse resolver in the next run instead of creating from scratch
 						PreferGo: true, // use go dns client
 						Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
 							d := net.Dialer{
@@ -350,7 +350,7 @@ func (m *Monitor) discoverGateway() error {
 }
 
 // calculateOverallStatus determines overall connectivity status
-func (m *Monitor) calculateOverallStatus() {
+func (m *Monitor) calculateOverallStatus() { // TODO a better scoring mechanism
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -391,7 +391,7 @@ func (m *Monitor) GetStats() *model.ConnectivityStats {
 // UpdateStats sets latest connectivity status
 func (m *Monitor) UpdateStats(stats *model.SystemStats) error {
 	s := m.GetStats()
-	metric.ComponentHealthLastChecked.WithLabelValues(Name).Set(float64(s.LastChecked.Unix()))
+	metric.ComponentHealthLastChecked.WithLabelValues(Name).Set(float64(s.LastChecked.Unix())) // TODO instead of calling WithLabelValues everytime, cache it here and reuse
 	metric.ComponentHealthStatus.WithLabelValues(Name).Set(metric.HealthStatusToFloat(metric.HealthStatus(s.Overall)))
 	stats.Connectivity = s
 	return nil

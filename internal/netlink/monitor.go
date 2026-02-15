@@ -40,7 +40,7 @@ func NewMonitor(cfg *config.NetlinkConfig, logger *zap.Logger) *Monitor {
 			Interfaces: make(map[int]*model.InterfaceInfo),
 		},
 		logger:        logger,
-		linkChan:      make(chan netlink.LinkUpdate, 100),
+		linkChan:      make(chan netlink.LinkUpdate, 100), // TODO 100?
 		routeChan:     make(chan netlink.RouteUpdate, 100),
 		addressChan:   make(chan netlink.AddrUpdate, 100),
 		checkInterval: cfg.CheckInterval,
@@ -114,10 +114,10 @@ func (m *Monitor) processEvents(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case update := <-m.linkChan:
+		case update := <-m.linkChan: // TODO: use "v,ok:= <- ch " notation. panic..
 			m.applyInterfaceChanges(&update)
 		case update := <-m.routeChan:
-			m.applyRouteChanges(&update)
+			m.applyRouteChanges(&update) // TODO route and addr seems only grows, not path for delete
 		case update := <-m.addressChan:
 			m.applyAddressChanges(&update)
 		}
@@ -205,7 +205,7 @@ func (m *Monitor) GetRoutes() ([]model.RouteInfo, error) {
 func (m *Monitor) GetStats() *model.NetlinkStats {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-
+	// TODO just return m.stats ...
 	s := model.NetlinkStats{
 		LastChecked: m.stats.LastChecked,
 	}

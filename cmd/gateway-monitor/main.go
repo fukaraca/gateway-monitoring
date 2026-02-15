@@ -64,7 +64,7 @@ func initialize() error {
 	}
 
 	select {
-	case <-ctx.Done():
+	case <-ctx.Done(): // TODO we don't exit unless signals called
 		cfg.Logger.Warn("Received shutdown signal", zap.Error(ctx.Err()))
 		err = gw.Stop() // Graceful(ish) shutdown
 	}

@@ -144,7 +144,7 @@ func (gm *GatewayMonitor) updateStats() {
 	healthScore := 100.0
 	for s, monitor := range gm.components {
 		if err := monitor.UpdateStats(&gm.stats); err != nil {
-			healthScore -= 30
+			healthScore -= 30 // TODO each monitor has their own score instead of constant 30, also drop 30, we don't like magic numers
 			gm.logger.Error("component monitor failed", zap.Error(err), zap.String("component", s))
 		}
 	}
@@ -158,7 +158,7 @@ func (gm *GatewayMonitor) updateStats() {
 }
 
 func (gm *GatewayMonitor) printStats() {
-	data, err := json.MarshalIndent(gm.GetStats(), "", "  ")
+	data, err := json.MarshalIndent(gm.GetStats(), "", "  ") // TODO using a buffer with json.Encoder can be another option
 	if err != nil {
 		gm.logger.Error("Error marshaling stats", zap.Error(err))
 		return
