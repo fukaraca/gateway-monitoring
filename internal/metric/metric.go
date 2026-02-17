@@ -130,7 +130,7 @@ func (e *Exporter) Start(ctx context.Context) error {
 		e.logger.Info("stopping prometheus server")
 		// graceful shutdown
 		shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
+		defer cancel() // TODO initial line will be better fit for defer
 		return e.srv.Shutdown(shCtx)
 	case err := <-errCh:
 		e.logger.Error("prometheus server failed", zap.Error(err))
@@ -139,6 +139,6 @@ func (e *Exporter) Start(ctx context.Context) error {
 }
 
 func (e *Exporter) Stop() error {
-	e.cancel()
+	e.cancel() // TODO nilcheck for cancel
 	return nil
 }

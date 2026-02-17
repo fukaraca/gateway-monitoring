@@ -95,7 +95,7 @@ func (m *Monitor) monitoringLoop(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			m.mu.Lock()
-			m.running = false
+			m.running = false // TODO just simply return
 			m.mu.Unlock()
 			return
 		case <-ticker.C:
@@ -109,7 +109,7 @@ func (m *Monitor) runConnectivityChecks(ctx context.Context) {
 	// Run ping tests
 	pingResults := make([]*model.PingResult, len(m.pingTargets))
 	var wgPing, wgDns sync.WaitGroup
-	for i, target := range m.pingTargets {
+	for i, target := range m.pingTargets { // TODO we don't have maxConcurrent limit, maybe a common worker job scheduler can be implemented
 		wgPing.Add(1)
 
 		go func(n int, t string) {
@@ -383,7 +383,7 @@ func (m *Monitor) calculateOverallStatus() { // TODO a better scoring mechanism
 // GetStats returns current connectivity status
 func (m *Monitor) GetStats() *model.ConnectivityStats {
 	m.mu.RLock()
-	s := *m.status // this should suffice since underlying ref values supposed to mutate
+	s := *m.status // TODO wew use getstats for API uniformity but we can simply use updatestats
 	m.mu.RUnlock()
 	return &s
 }

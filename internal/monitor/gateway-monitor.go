@@ -97,8 +97,8 @@ func (gm *GatewayMonitor) Start(ctx context.Context) error {
 	}
 
 	// Start the main monitoring loop
-	gm.wg.Go(gm.monitoringLoop) // TODO errors ignored. Use errgroup if errors matter.
-	gm.wg.Go(func() { gm.exporter.Start(ctx) })
+	gm.wg.Go(gm.monitoringLoop)                 // TODO errors ignored. Use errgroup if errors matter.
+	gm.wg.Go(func() { gm.exporter.Start(ctx) }) // TODO we should start metric server before components
 
 	return nil
 }
@@ -122,7 +122,7 @@ func (gm *GatewayMonitor) Stop() error {
 }
 
 func (gm *GatewayMonitor) monitoringLoop() {
-	ticker := time.NewTicker(gm.updateInterval)
+	ticker := time.NewTicker(gm.updateInterval) // TODO Timer is better, beware drift
 	defer ticker.Stop()
 
 	for {
@@ -130,7 +130,7 @@ func (gm *GatewayMonitor) monitoringLoop() {
 		case <-gm.ctx.Done():
 			return
 		case <-ticker.C:
-			gm.updateStats()
+			gm.updateStats() // TODO instead of allocations we can use sync.Pool for reuse
 			gm.printStats()
 		}
 	}
